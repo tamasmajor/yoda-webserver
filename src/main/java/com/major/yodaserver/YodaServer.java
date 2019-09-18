@@ -38,7 +38,7 @@ public class YodaServer {
     public void listen() {
         logger.info("Running on port: {}", port);
         try (ServerSocket server = serverSocketFactory.createServerSocket(port)) {
-            while (!interrupter.actived()) {
+            while (!interrupter.activated()) {
                 server.accept();
             }
         } catch (IOException e) {

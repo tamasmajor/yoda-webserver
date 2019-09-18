@@ -64,23 +64,23 @@ public class YodaServerTest {
     @Test
     public void listen_interruptedBeforeFirstRequest_doesNotAcceptAnyRequestBeforeShutdown() throws IOException {
         // given
-        when(interrupter.actived()).thenReturn(true);
+        when(interrupter.activated()).thenReturn(true);
         // when
         yodaServer.listen();
         // then
-        verify(interrupter, times(1)).actived();
+        verify(interrupter, times(1)).activated();
         verify(serverSocket, times(0)).accept();
     }
 
     @Test
     public void listen_interruptedOnlyAfterFirstRequest_callsAcceptOneRequestBeforeShutdown() throws IOException {
         // given
-        when(interrupter.actived()).thenReturn(false, true);
+        when(interrupter.activated()).thenReturn(false, true);
         when(serverSocket.accept()).thenReturn(new Socket());
         // when
         yodaServer.listen();
         // then
-        verify(interrupter, times(2)).actived();
+        verify(interrupter, times(2)).activated();
         verify(serverSocket, times(1)).accept();
     }
     

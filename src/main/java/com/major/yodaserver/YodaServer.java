@@ -45,8 +45,13 @@ public class YodaServer {
         ExecutorService pool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
         try (ServerSocket server = serverSocketFactory.createServerSocket(port)) {
             while (!interrupter.activated()) {
-                Socket connection = server.accept();
-                pool.submit(requestProcessorFactory.createRequestProcessor(connection));
+                try {
+                    Socket connection = server.accept();
+                    pool.submit(requestProcessorFactory.createRequestProcessor(connection));
+                } catch (RuntimeException e) {
+                    // just log the exception, do not stop the server because of a failing request
+                    logger.error("Could not process a request", e);
+                }
             }
         } catch (IOException e) {
             logger.error("Could not create the server socket on port " + port, e);

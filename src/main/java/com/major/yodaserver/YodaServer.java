@@ -2,6 +2,7 @@ package com.major.yodaserver;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 import javax.net.ServerSocketFactory;
 
@@ -39,7 +40,8 @@ public class YodaServer {
         logger.info("Running on port: {}", port);
         try (ServerSocket server = serverSocketFactory.createServerSocket(port)) {
             while (!interrupter.activated()) {
-                server.accept();
+                Socket connection = server.accept();
+                requestProcessorFactory.createRequestProcessor(connection);
             }
         } catch (IOException e) {
             logger.error("Could not create the server socket on port " + port, e);

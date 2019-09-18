@@ -10,12 +10,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.major.yodaserver.interrupter.ServerInterrupter;
 import com.major.yodaserver.requestprocessor.factory.RequestProcessorFactory;
 
+import static org.junit.Assert.assertSame;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -94,6 +96,24 @@ public class YodaServerTest {
         // when
         yodaServer.listen();
         // then - throws expected exception
+    }
+
+    @Test
+    public void listen_twoIncomingRequest_spawnNewProcessorForBoth() throws IOException {
+        // given
+        ArgumentCaptor<Socket> socketCaptor = ArgumentCaptor.forClass(Socket.class);
+        when(interrupter.activated()).thenReturn(false, false, true);
+        Socket connectionA = new Socket();
+        Socket connectionB = new Socket();
+        when(serverSocket.accept()).thenReturn(connectionA, connectionB);
+        // when
+        yodaServer.listen();
+        // then
+        verify(requestProcessorFactory, times(2)).createRequestProcessor(socketCaptor.capture());
+        assertSame(connectionA, socketCaptor.getAllValues().get(0));
+        assertSame(connectionB, socketCaptor.getAllValues().get(1));
+        verify(serverSocket, times(2)).accept();
+        verify(interrupter, times(3)).activated();
     }
 
     private YodaServer mockedYoda() {

@@ -3,6 +3,8 @@ package com.major.yodaserver;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.net.ServerSocketFactory;
 
@@ -14,6 +16,8 @@ import com.major.yodaserver.requestprocessor.factory.RequestProcessorFactory;
 
 public class YodaServer {
     private static final Logger logger = LoggerFactory.getLogger(YodaServer.class);
+
+    private static final int NUMBER_OF_THREADS = 20;
 
     private static final int DEFAULT_PORT = 80;
     protected static final int LOWEST_AVAILABLE_PORT = 1;
@@ -38,10 +42,11 @@ public class YodaServer {
 
     public void listen() {
         logger.info("Running on port: {}", port);
+        ExecutorService pool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
         try (ServerSocket server = serverSocketFactory.createServerSocket(port)) {
             while (!interrupter.activated()) {
                 Socket connection = server.accept();
-                requestProcessorFactory.createRequestProcessor(connection);
+                pool.submit(requestProcessorFactory.createRequestProcessor(connection));
             }
         } catch (IOException e) {
             logger.error("Could not create the server socket on port " + port, e);

@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.major.yodaserver.interrupter.ServerInterrupter;
+import com.major.yodaserver.requestprocessor.RequestProcessor;
 import com.major.yodaserver.requestprocessor.factory.RequestProcessorFactory;
 
 import static org.junit.Assert.assertSame;
@@ -79,6 +80,7 @@ public class YodaServerTest {
         // given
         when(interrupter.activated()).thenReturn(false, true);
         when(serverSocket.accept()).thenReturn(new Socket());
+        when(requestProcessorFactory.createRequestProcessor(any())).thenReturn(aDoNothingProcessor());
         // when
         yodaServer.listen();
         // then
@@ -106,6 +108,7 @@ public class YodaServerTest {
         Socket connectionA = new Socket();
         Socket connectionB = new Socket();
         when(serverSocket.accept()).thenReturn(connectionA, connectionB);
+        when(requestProcessorFactory.createRequestProcessor(any())).thenReturn(aDoNothingProcessor());
         // when
         yodaServer.listen();
         // then
@@ -118,6 +121,13 @@ public class YodaServerTest {
 
     private YodaServer mockedYoda() {
         return new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter));
+    }
+
+    private RequestProcessor aDoNothingProcessor() {
+        return new RequestProcessor(new Socket()) {
+            @Override
+            public void run() {}
+        };
     }
 
 }

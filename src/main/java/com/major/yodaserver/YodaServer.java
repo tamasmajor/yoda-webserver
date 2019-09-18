@@ -10,14 +10,16 @@ public class YodaServer {
     protected static final int LOWEST_AVAILABLE_PORT = 1;
     protected static final int HIGHEST_AVAILABLE_PORT = 65535;
 
+    private final ServerSettings serverSettings;
     private final int port;
 
-    public YodaServer() {
-        this(DEFAULT_PORT);
+    public YodaServer(ServerSettings serverSettings) {
+        this(serverSettings, DEFAULT_PORT);
     }
 
-    public YodaServer(int port) {
+    public YodaServer(ServerSettings serverSettings, int port) {
         validatePort(port);
+        this.serverSettings = serverSettings;
         this.port = port;
     }
 

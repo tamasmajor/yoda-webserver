@@ -53,7 +53,8 @@ public class YodaServerTest {
         int testedPort = YodaServer.LOWEST_AVAILABLE_PORT - 1;
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Port '" + testedPort + "' is not valid");
-        new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter), testedPort);
+        new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
+                       new ServerContext(null, testedPort));
     }
 
     @Test
@@ -61,7 +62,8 @@ public class YodaServerTest {
         int testedPort = YodaServer.HIGHEST_AVAILABLE_PORT + 1;
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Port '" + testedPort + "' is not valid");
-        new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter), testedPort);
+        new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
+                       new ServerContext(null, testedPort));
     }
 
     @Test
@@ -120,7 +122,8 @@ public class YodaServerTest {
     }
 
     private YodaServer mockedYoda() {
-        return new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter));
+        return new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
+                              new ServerContext(null, null));
     }
 
     private RequestProcessor aDoNothingProcessor() {

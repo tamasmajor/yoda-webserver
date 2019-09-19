@@ -1,11 +1,12 @@
 package com.major.yodaserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.net.ServerSocketFactory;
 
 import org.slf4j.Logger;
@@ -27,17 +28,16 @@ public class YodaServer {
     private final ServerSocketFactory serverSocketFactory;
     private final ServerInterrupter interrupter;
     private final int port;
+    private final File rootDir;
 
-    public YodaServer(ServerSettings serverSettings) {
-        this(serverSettings, DEFAULT_PORT);
-    }
 
-    public YodaServer(ServerSettings serverSettings, int port) {
+    public YodaServer(ServerSettings serverSettings, ServerContext context) {
+        this.port = Optional.ofNullable(context.getPort()).orElse(DEFAULT_PORT);
         validatePort(port);
+        this.rootDir = context.getRootDir();
         this.requestProcessorFactory = serverSettings.getRequestProcessorFactory();
         this.serverSocketFactory = serverSettings.getServerSocketFactory();
         this.interrupter = serverSettings.getServerInterrupter();
-        this.port = port;
     }
 
     public void listen() {

@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.major.yodaserver.interrupter.EndlessInterrupter;
-import com.major.yodaserver.requestprocessor.factory.AcknowledgementRequestProcessorFactory;
+import com.major.yodaserver.requestprocessor.factory.YodaRequestProcessorFactory;
 
 public class Yoda {
     private static Logger logger = LoggerFactory.getLogger(Yoda.class);
@@ -26,12 +26,12 @@ public class Yoda {
         if (args.length > 1) {
             int port = Integer.parseInt(args[1]);
             yodaServer = new YodaServer(new ServerSettings(ServerSocketFactory.getDefault(),
-                                                           new AcknowledgementRequestProcessorFactory(),
+                                                           new YodaRequestProcessorFactory(),
                                                            new EndlessInterrupter()),
                                         new ServerContext(rootDirectory, port));
         } else {
             yodaServer = new YodaServer(new ServerSettings(ServerSocketFactory.getDefault(),
-                                                           new AcknowledgementRequestProcessorFactory(),
+                                                           new YodaRequestProcessorFactory(),
                                                            new EndlessInterrupter()),
                                         new ServerContext(rootDirectory));
         }

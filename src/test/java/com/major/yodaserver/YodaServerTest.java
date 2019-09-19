@@ -82,7 +82,7 @@ public class YodaServerTest {
         // given
         when(interrupter.activated()).thenReturn(false, true);
         when(serverSocket.accept()).thenReturn(new Socket());
-        when(requestProcessorFactory.createRequestProcessor(any())).thenReturn(aDoNothingProcessor());
+        when(requestProcessorFactory.createRequestProcessor(any(), any())).thenReturn(aDoNothingProcessor());
         // when
         yodaServer.listen();
         // then
@@ -110,11 +110,11 @@ public class YodaServerTest {
         Socket connectionA = new Socket();
         Socket connectionB = new Socket();
         when(serverSocket.accept()).thenReturn(connectionA, connectionB);
-        when(requestProcessorFactory.createRequestProcessor(any())).thenReturn(aDoNothingProcessor());
+        when(requestProcessorFactory.createRequestProcessor(any(), any())).thenReturn(aDoNothingProcessor());
         // when
         yodaServer.listen();
         // then
-        verify(requestProcessorFactory, times(2)).createRequestProcessor(socketCaptor.capture());
+        verify(requestProcessorFactory, times(2)).createRequestProcessor(any(), socketCaptor.capture());
         assertSame(connectionA, socketCaptor.getAllValues().get(0));
         assertSame(connectionB, socketCaptor.getAllValues().get(1));
         verify(serverSocket, times(2)).accept();
@@ -127,7 +127,7 @@ public class YodaServerTest {
     }
 
     private RequestProcessor aDoNothingProcessor() {
-        return new RequestProcessor(new Socket()) {
+        return new RequestProcessor(null, new Socket()) {
             @Override
             public void run() {}
         };

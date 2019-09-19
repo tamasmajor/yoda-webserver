@@ -1,6 +1,7 @@
 package com.major.yodaserver.requestprocessor;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -12,8 +13,8 @@ public class AcknowledgementRequestProcessor extends RequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AcknowledgementRequestProcessor.class);
     private static final String LINE_TERMINATOR = "\r\n";
 
-    public AcknowledgementRequestProcessor(Socket connection) {
-        super(connection);
+    public AcknowledgementRequestProcessor(File rootDir, Socket connection) {
+        super(rootDir, connection);
     }
 
     @Override

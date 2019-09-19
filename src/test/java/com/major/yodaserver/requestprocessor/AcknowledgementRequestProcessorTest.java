@@ -15,7 +15,7 @@ public class AcknowledgementRequestProcessorTest {
     public void acknowledges() {
         // given
         VerifierSocket verifierSocket = new VerifierSocket();
-        AcknowledgementRequestProcessor acknowledgementProcessor = new AcknowledgementRequestProcessor(verifierSocket);
+        AcknowledgementRequestProcessor acknowledgementProcessor = new AcknowledgementRequestProcessor(null, verifierSocket);
         // when
         acknowledgementProcessor.run();
         // then

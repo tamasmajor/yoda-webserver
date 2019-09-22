@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 public class YodaRequestProcessor extends RequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(YodaRequestProcessor.class);
-    private static final String LINE_TERMINATOR = "\r\n";
 
     public YodaRequestProcessor(File rootDir, Socket connection) {
         super(rootDir, connection);
@@ -21,10 +20,10 @@ public class YodaRequestProcessor extends RequestProcessor {
         try {
             logger.info(connection.getRemoteSocketAddress().toString());
             BufferedOutputStream response = new BufferedOutputStream(connection.getOutputStream());
-            response.write(asBytes("HTTP/1.1 200 OK"));
-            response.write(asBytes("Server: YodaServer 0.0.1"));
-            response.write(asBytes("Content-Length: 0"));
-            response.write(asBytes(""));
+            response.write(asResponseLine("HTTP/1.1 200 OK"));
+            response.write(asResponseLine("Server: YodaServer 0.0.1"));
+            response.write(asResponseLine("Content-Length: 0"));
+            response.write(asResponseLine(""));
             response.flush();
         } catch (IOException e) {
             logger.warn("Error during the request processing from " + connection.getRemoteSocketAddress(), e);
@@ -37,7 +36,5 @@ public class YodaRequestProcessor extends RequestProcessor {
         }
     }
 
-    private byte[] asBytes(String line) {
-        return (line + LINE_TERMINATOR).getBytes();
-    }
+
 }

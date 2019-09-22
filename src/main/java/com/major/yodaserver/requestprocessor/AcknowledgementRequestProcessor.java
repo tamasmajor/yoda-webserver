@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 public class AcknowledgementRequestProcessor extends RequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AcknowledgementRequestProcessor.class);
-    private static final String LINE_TERMINATOR = "\r\n";
 
     public AcknowledgementRequestProcessor(File rootDir, Socket connection) {
         super(rootDir, connection);
@@ -22,10 +21,10 @@ public class AcknowledgementRequestProcessor extends RequestProcessor {
         try {
             logger.info(connection.getRemoteSocketAddress().toString());
             BufferedOutputStream response = new BufferedOutputStream(connection.getOutputStream());
-            response.write(asBytes("HTTP/1.1 200 OK"));
-            response.write(asBytes("Server: YodaServer 0.0.1"));
-            response.write(asBytes("Content-Length: 0"));
-            response.write(asBytes(""));
+            response.write(asResponseLine("HTTP/1.1 200 OK"));
+            response.write(asResponseLine("Server: YodaServer 0.0.1"));
+            response.write(asResponseLine("Content-Length: 0"));
+            response.write(asResponseLine(""));
             response.flush();
         } catch (IOException e) {
             // client disconnected, nothing to do
@@ -36,10 +35,6 @@ public class AcknowledgementRequestProcessor extends RequestProcessor {
                 logger.error("Could not close the connection {}", ex);
             }
         }
-    }
-
-    private byte[] asBytes(String line) {
-        return (line + LINE_TERMINATOR).getBytes();
     }
 
 }

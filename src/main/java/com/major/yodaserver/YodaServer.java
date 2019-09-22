@@ -35,6 +35,7 @@ public class YodaServer {
         this.port = Optional.ofNullable(context.getPort()).orElse(DEFAULT_PORT);
         validatePort(port);
         this.rootDir = context.getRootDir();
+        validateRootDir(rootDir);
         this.requestProcessorFactory = serverSettings.getRequestProcessorFactory();
         this.serverSocketFactory = serverSettings.getServerSocketFactory();
         this.interrupter = serverSettings.getServerInterrupter();
@@ -64,6 +65,15 @@ public class YodaServer {
             logger.error("Invalid port number: {} (lowest allowed: {}, highest allowed: {})",
                    port, LOWEST_AVAILABLE_PORT, HIGHEST_AVAILABLE_PORT);
             throw new IllegalArgumentException("Port '" + port + "' is not valid");
+        }
+    }
+
+    private void validateRootDir(File rootDir) {
+        if (!rootDir.exists()) {
+            throw new IllegalArgumentException("Server root must exist");
+        }
+        if (rootDir.isFile()) {
+            throw new IllegalArgumentException("Server root must be a directory");
         }
     }
 }

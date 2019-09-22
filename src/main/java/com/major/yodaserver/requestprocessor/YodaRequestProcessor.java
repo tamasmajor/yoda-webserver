@@ -27,7 +27,7 @@ public class YodaRequestProcessor extends RequestProcessor {
             response.write(asBytes(""));
             response.flush();
         } catch (IOException e) {
-            // client disconnected, nothing to do
+            logger.warn("Error during the request processing from " + connection.getRemoteSocketAddress(), e);
         } finally {
             try {
                 connection.close();

@@ -1,5 +1,6 @@
 package com.major.yodaserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -27,6 +29,9 @@ public class YodaServerTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private ServerSocketFactory serverSocketFactory;
@@ -64,6 +69,30 @@ public class YodaServerTest {
         thrown.expectMessage("Port '" + testedPort + "' is not valid");
         new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
                        new ServerContext(null, testedPort));
+    }
+    
+    @Test
+    public void yodaServer_creationWithFileAsRootDir_throwIllegalArgumentException() throws IOException {
+        // expected exception
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Server root must be a directory");
+        // given
+        File file = tempFolder.newFile("aFile.txt");
+        // when
+        new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
+                       new ServerContext(file, 8080));
+    }
+
+    @Test
+    public void yodaServer_creationWithNonExistingRootDir_throwIllegalArgumentException() throws IOException {
+        // expected exception
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Server root must exist");
+        // given
+        File root = new File(tempFolder.getRoot().getCanonicalPath() + "/missing");
+        // when
+        new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
+                       new ServerContext(root, 8080));
     }
 
     @Test
@@ -123,7 +152,7 @@ public class YodaServerTest {
 
     private YodaServer mockedYoda() {
         return new YodaServer(new ServerSettings(serverSocketFactory, requestProcessorFactory, interrupter),
-                              new ServerContext(null, null));
+                              new ServerContext(tempFolder.getRoot(), 8080));
     }
 
     private RequestProcessor aDoNothingProcessor() {

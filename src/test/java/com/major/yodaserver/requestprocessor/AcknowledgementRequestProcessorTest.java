@@ -19,7 +19,7 @@ public class AcknowledgementRequestProcessorTest {
         // when
         acknowledgementProcessor.run();
         // then
-        List<String> responseLines = verifierSocket.getWrittenLines();
+        List<String> responseLines = verifierSocket.getResponseLines();
         assertEquals(4, responseLines.size());
         Iterator<String> responseIterator = responseLines.iterator();
         assertEquals("HTTP/1.1 200 OK\r\n", responseIterator.next());

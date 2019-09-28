@@ -18,4 +18,4 @@ jobs:
     steps:
       - checkout
       - run: ls -l ~
-      - run: mvn -f ~/pom.xml clean package
+      - run: mvn -f ~/project/pom.xml clean package

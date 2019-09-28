@@ -14,4 +14,16 @@ public class SocketReader {
         reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(connection.getInputStream()), CHARSET));
     }
 
+    public String getMethod() throws IOException {
+        return reader.readLine().split("\\s+")[0];
+    }
+
+
+    public String getRequestUri() throws IOException {
+        return reader.readLine().split("\\s+")[1];
+    }
+
+    public String getHttpVersion() throws IOException {
+        return reader.readLine().split("\\s+")[2];
+    }
 }

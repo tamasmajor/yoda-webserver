@@ -1,7 +1,7 @@
 package com.major.yodaserver.requestprocessor;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -18,9 +18,10 @@ public class YodaRequestProcessorTest {
     private static final String TEST_RESOURCES = "src/test/resources";
 
     @Test
-    public void imageResourceRequested_imageResourceReturned() throws IOException {
+    public void imageResourceRequested_imageResourceReturned() throws Exception {
         // given
-        byte[] expectedFileContent = Files.readAllBytes(Paths.get("src", "test", "resources", "test", "image01.png"));
+        URL resource = getClass().getClassLoader().getResource("test/image01.png");
+        byte[] expectedFileContent = Files.readAllBytes(Paths.get(resource.toURI()));
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("GET /test/image01.png HTTP/1.1");
         YodaRequestProcessor requestProcessor = new YodaRequestProcessor(new File(TEST_RESOURCES), verifierSocket);

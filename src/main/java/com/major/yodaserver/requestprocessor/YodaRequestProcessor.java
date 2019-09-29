@@ -8,8 +8,12 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.major.yodaserver.connection.SocketReader;
+
 public class YodaRequestProcessor extends RequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(YodaRequestProcessor.class);
+    private static final String NOT_SUPPORTED_MESSAGE_BODY = "<HTML><HEAD><TITLE>Not yet supported</TITLE></HEAD>" +
+                                                             "<BODY>501 - Not yet supported</BODY></HTML>";
 
     public YodaRequestProcessor(File rootDir, Socket connection) {
         super(rootDir, connection);
@@ -18,13 +22,23 @@ public class YodaRequestProcessor extends RequestProcessor {
     @Override
     public void run() {
         try {
-            logger.info(connection.getRemoteSocketAddress().toString());
+            logger.info("Connection from: {}", connection.getRemoteSocketAddress().toString());
+
+            SocketReader socketReader = new SocketReader(connection);
             BufferedOutputStream response = new BufferedOutputStream(connection.getOutputStream());
-            response.write(asResponseLine("HTTP/1.1 200 OK"));
-            response.write(asResponseLine("Server: YodaServer 0.0.1"));
-            response.write(asResponseLine("Content-Length: 0"));
-            response.write(asResponseLine(""));
-            response.flush();
+
+            String requestMethod = socketReader.getRequestMethod();
+
+            if (requestMethod.equals("GET")) {
+                response.write(asResponseLine("HTTP/1.1 200 OK"));
+                response.write(asResponseLine("Server: YodaServer 0.0.1"));
+                response.write(asResponseLine("Content-Length: 0"));
+                response.write(asResponseLine(""));
+                response.flush();
+            } else {
+                response.write(constructNotSupportedResponse().getBytes());
+                response.flush();
+            }
         } catch (IOException e) {
             logger.warn("Error during the request processing from " + connection.getRemoteSocketAddress(), e);
         } finally {
@@ -34,6 +48,15 @@ public class YodaRequestProcessor extends RequestProcessor {
                 logger.error("Could not close the connection {}", ex);
             }
         }
+    }
+
+    private String constructNotSupportedResponse() {
+        return String.join(RESPONSE_LINE_TERMINATOR, "HTTP/1.1 501 Not Implemented",
+                                                     "Server: YodaServer 0.0.1",
+                                                     "Content-Length: " + NOT_SUPPORTED_MESSAGE_BODY.getBytes().length,
+                                                     "Content-type: text/html",
+                                                     "",
+                                                     NOT_SUPPORTED_MESSAGE_BODY);
     }
 
 

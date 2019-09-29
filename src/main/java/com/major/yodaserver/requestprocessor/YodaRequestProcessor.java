@@ -4,6 +4,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URLConnection;
+import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +32,17 @@ public class YodaRequestProcessor extends RequestProcessor {
             String requestMethod = socketReader.getRequestMethod();
 
             if (requestMethod.equals("GET")) {
+                String uri = socketReader.getRequestUri();
+                String contentType = URLConnection.getFileNameMap().getContentTypeFor(uri);
+                // TODO: make sure clients cannot navigate outside of the document root with ".."
+                File requestedResource = new File(rootDir, uri.substring(1, uri.length()));
+                byte[] resource = Files.readAllBytes(requestedResource.toPath());
                 response.write(asResponseLine("HTTP/1.1 200 OK"));
                 response.write(asResponseLine("Server: YodaServer 0.0.1"));
-                response.write(asResponseLine("Content-Length: 0"));
+                response.write(asResponseLine("Content-Length: " + resource.length));
+                response.write(asResponseLine("Content-Type: " + contentType));
                 response.write(asResponseLine(""));
+                response.write(resource);
                 response.flush();
             } else {
                 response.write(constructNotSupportedResponse().getBytes());

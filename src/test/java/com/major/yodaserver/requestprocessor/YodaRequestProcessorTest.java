@@ -1,5 +1,9 @@
 package com.major.yodaserver.requestprocessor;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 
@@ -7,26 +11,31 @@ import org.junit.Test;
 
 import com.major.yodaserver.helper.VerifierSocket;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class YodaRequestProcessorTest {
+    private static final String TEST_RESOURCES = "src/test/resources";
 
     @Test
-    public void supportedMethod_acknowledges() {
+    public void imageResourceRequested_imageResourceReturned() throws IOException {
         // given
+        byte[] expectedFileContent = Files.readAllBytes(Paths.get("src", "test", "resources", "test", "image01.png"));
         VerifierSocket verifierSocket = new VerifierSocket();
-        verifierSocket.addRequestLine("GET /a/file.html HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(null, verifierSocket);
+        verifierSocket.addRequestLine("GET /test/image01.png HTTP/1.1");
+        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(new File(TEST_RESOURCES), verifierSocket);
         // when
         requestProcessor.run();
         // then
-        List<String> responseLines = verifierSocket.getResponseLines();
-        assertEquals(4, responseLines.size());
-        Iterator<String> responseIterator = responseLines.iterator();
-        assertEquals("HTTP/1.1 200 OK\r\n", responseIterator.next());
-        assertEquals("Server: YodaServer 0.0.1\r\n", responseIterator.next());
-        assertEquals("Content-Length: 0\r\n", responseIterator.next());
-        assertEquals("\r\n", responseIterator.next());
+        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
+        assertEquals(5, responseHeaderLines.size());
+        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
+        assertEquals("HTTP/1.1 200 OK", itHeaderLines.next());
+        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
+        assertEquals("Content-Length: " + expectedFileContent.length, itHeaderLines.next());
+        assertEquals("Content-Type: image/png", itHeaderLines.next());
+        assertEquals("", itHeaderLines.next());
+        assertArrayEquals(expectedFileContent, verifierSocket.bodyAsBytes());
     }
 
     @Test
@@ -38,15 +47,16 @@ public class YodaRequestProcessorTest {
         // when
         requestProcessor.run();
         // then
-        List<String> responseLines = verifierSocket.getResponseLines();
-        assertEquals(6, responseLines.size());
-        Iterator<String> responseIterator = responseLines.iterator();
-        assertEquals("HTTP/1.1 501 Not Implemented\r\n", responseIterator.next());
-        assertEquals("Server: YodaServer 0.0.1\r\n", responseIterator.next());
-        assertEquals("Content-Length: 94\r\n", responseIterator.next());
-        assertEquals("Content-type: text/html\r\n", responseIterator.next());
-        assertEquals("\r\n", responseIterator.next());
-        assertEquals("<HTML><HEAD><TITLE>Not yet supported</TITLE></HEAD><BODY>501 - Not yet supported</BODY></HTML>", responseIterator.next());
+        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
+        assertEquals(5, responseHeaderLines.size());
+        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
+        assertEquals("HTTP/1.1 501 Not Implemented", itHeaderLines.next());
+        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
+        assertEquals("Content-Length: 94", itHeaderLines.next());
+        assertEquals("Content-type: text/html", itHeaderLines.next());
+        assertEquals("", itHeaderLines.next());
+        assertEquals("<HTML><HEAD><TITLE>Not yet supported</TITLE></HEAD><BODY>501 - Not yet supported</BODY></HTML>",
+                     verifierSocket.bodyAsString());
     }
 
 }

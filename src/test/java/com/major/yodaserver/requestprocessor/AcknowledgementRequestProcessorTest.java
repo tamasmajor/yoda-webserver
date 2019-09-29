@@ -19,13 +19,13 @@ public class AcknowledgementRequestProcessorTest {
         // when
         acknowledgementProcessor.run();
         // then
-        List<String> responseLines = verifierSocket.getResponseLines();
-        assertEquals(4, responseLines.size());
-        Iterator<String> responseIterator = responseLines.iterator();
-        assertEquals("HTTP/1.1 200 OK\r\n", responseIterator.next());
-        assertEquals("Server: YodaServer 0.0.1\r\n", responseIterator.next());
-        assertEquals("Content-Length: 0\r\n", responseIterator.next());
-        assertEquals("\r\n", responseIterator.next());
+        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
+        assertEquals(4, responseHeaderLines.size());
+        Iterator<String> itResponseLine = responseHeaderLines.iterator();
+        assertEquals("HTTP/1.1 200 OK", itResponseLine.next());
+        assertEquals("Server: YodaServer 0.0.1", itResponseLine.next());
+        assertEquals("Content-Length: 0", itResponseLine.next());
+        assertEquals("", itResponseLine.next());
     }
 
 

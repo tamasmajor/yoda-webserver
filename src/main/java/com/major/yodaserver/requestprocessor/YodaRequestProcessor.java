@@ -11,14 +11,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.major.yodaserver.connection.SocketReader;
+import com.major.yodaserver.requestprocessor.plugin.DirectoryExplorer;
 
 public class YodaRequestProcessor extends RequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(YodaRequestProcessor.class);
     private static final String NOT_SUPPORTED_MESSAGE_BODY = "<HTML><HEAD><TITLE>Not yet supported</TITLE></HEAD>" +
                                                              "<BODY>501 - Not yet supported</BODY></HTML>";
 
-    public YodaRequestProcessor(File rootDir, Socket connection) {
+    private final DirectoryExplorer directoryExplorer;
+
+    public YodaRequestProcessor(File rootDir, Socket connection, DirectoryExplorer directoryExplorer) {
         super(rootDir, connection);
+        this.directoryExplorer = directoryExplorer;
     }
 
     @Override
@@ -36,13 +40,24 @@ public class YodaRequestProcessor extends RequestProcessor {
                 String contentType = URLConnection.getFileNameMap().getContentTypeFor(uri);
                 // TODO: make sure clients cannot navigate outside of the document root with ".."
                 File requestedResource = new File(rootDir, uri.substring(1, uri.length()));
-                byte[] resource = Files.readAllBytes(requestedResource.toPath());
-                response.write(asResponseLine("HTTP/1.1 200 OK"));
-                response.write(asResponseLine("Server: YodaServer 0.0.1"));
-                response.write(asResponseLine("Content-Length: " + resource.length));
-                response.write(asResponseLine("Content-Type: " + contentType));
-                response.write(asResponseLine(""));
-                response.write(resource);
+
+                if (requestedResource.isDirectory()) {
+                    String data = directoryExplorer.renderPage(requestedResource);
+                    response.write(asResponseLine("HTTP/1.1 200 OK"));
+                    response.write(asResponseLine("Server: YodaServer 0.0.1"));
+                    response.write(asResponseLine("Content-Length: " + data.length()));
+                    response.write(asResponseLine("Content-Type: text/html"));
+                    response.write(asResponseLine(""));
+                    response.write(data.getBytes());
+                } else {
+                    byte[] resource = Files.readAllBytes(requestedResource.toPath());
+                    response.write(asResponseLine("HTTP/1.1 200 OK"));
+                    response.write(asResponseLine("Server: YodaServer 0.0.1"));
+                    response.write(asResponseLine("Content-Length: " + resource.length));
+                    response.write(asResponseLine("Content-Type: " + contentType));
+                    response.write(asResponseLine(""));
+                    response.write(resource);
+                }
                 response.flush();
             } else {
                 response.write(constructNotSupportedResponse().getBytes());

@@ -23,7 +23,7 @@ public class YodaRequestProcessorTest {
         byte[] expectedFileContent = Files.readAllBytes(Paths.get("src", "test", "resources", "test", "image01.png"));
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("GET /test/image01.png HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(new File(TEST_RESOURCES), verifierSocket);
+        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(new File(TEST_RESOURCES), verifierSocket, null);
         // when
         requestProcessor.run();
         // then
@@ -43,7 +43,7 @@ public class YodaRequestProcessorTest {
         // given
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("PUT /a/file.html HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(null, verifierSocket);
+        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(null, verifierSocket, null);
         // when
         requestProcessor.run();
         // then

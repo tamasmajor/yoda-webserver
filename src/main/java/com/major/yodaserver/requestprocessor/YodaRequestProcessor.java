@@ -42,7 +42,7 @@ public class YodaRequestProcessor extends RequestProcessor {
                 File requestedResource = new File(rootDir, uri.substring(1, uri.length()));
 
                 if (requestedResource.isDirectory()) {
-                    String data = directoryExplorer.renderPage(requestedResource);
+                    String data = directoryExplorer.renderPage(rootDir, requestedResource);
                     response.write(asResponseLine("HTTP/1.1 200 OK"));
                     response.write(asResponseLine("Server: YodaServer 0.0.1"));
                     response.write(asResponseLine("Content-Length: " + data.length()));

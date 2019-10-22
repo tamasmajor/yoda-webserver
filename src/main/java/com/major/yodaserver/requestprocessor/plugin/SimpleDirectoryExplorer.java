@@ -12,9 +12,10 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
     @Override
     public String renderPage(File rootDir, File requestedDir) throws IOException {
         StringBuffer page = new StringBuffer();
-        addPageOpening(page);
+        String currentDirectoryPathFromRoot = getCurrentDirectoryPathFromRoot(rootDir, requestedDir);
+        addPageOpening(currentDirectoryPathFromRoot, page);
         if (existingDirectory(requestedDir)) {
-            addCurrentDirectoryHeading(rootDir, requestedDir, page);
+            addCurrentDirectoryHeading(currentDirectoryPathFromRoot, page);
             page.append("<table>");
             addParentDirectoryItem(rootDir, requestedDir, page);
             addDirectories(rootDir, requestedDir, page);
@@ -32,9 +33,8 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         return requestedDir.exists() && requestedDir.isDirectory();
     }
 
-    private void addCurrentDirectoryHeading(File rootDir, File requestedDir, StringBuffer page) throws  IOException {
-        String currentDir = requestedDir.getCanonicalPath().replace(rootDir.getCanonicalPath(), "");
-        page.append("<h2>Index of ").append(currentDir).append("</h2>");
+    private void addCurrentDirectoryHeading(String currentDirectoryPathFromRoot, StringBuffer page) {
+        page.append("<h2>Index of ").append(currentDirectoryPathFromRoot).append("</h2>");
     }
 
     private void addParentDirectoryItem(File rootDir, File requestedDir, StringBuffer page) throws IOException {
@@ -97,11 +97,14 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         }
     }
 
-    private void addPageOpening(StringBuffer page) {
+    private void addPageOpening(String currentDirectoryPathFromRoot, StringBuffer page) {
         page.append("<html><head>")
             .append("<meta charset=\"utf-8\">")
             .append("<meta name=\"viewport\" content=\"width=device-width\">")
-            .append("</head><body>");
+            .append("<style>td { padding: 2px 12px 2px 12px; }</style>")
+            .append("<title>Index of ")
+            .append(currentDirectoryPathFromRoot)
+            .append("</title></head><body>");
     }
 
     private void addPageClosing(StringBuffer page) {
@@ -119,6 +122,14 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
             serverVersion = properties.getProperty("server.version");
         }
         return serverVersion;
+    }
+
+    private String getCurrentDirectoryPathFromRoot(File rootDirectory, File requestedDirectory) throws IOException {
+        String path = requestedDirectory.getCanonicalPath().replace(rootDirectory.getCanonicalPath(), "");
+        if (path.length() == 0) {
+            path = "/";
+        }
+        return path;
     }
 
 }

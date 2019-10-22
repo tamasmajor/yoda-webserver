@@ -19,13 +19,22 @@ public class SimpleDirectoryExplorerTest {
 
 
     @Test
-    public void renderPage_addsCurrentDirectoryHeading() throws IOException {
+    public void renderPage_requestedIsNotRoot_addsCurrentDirectoryHeading() throws IOException {
         // given
         File anEmptyDir = tempFolder.newFolder("anEmptyDir");
         // when
         String page = directoryExplorer.renderPage(tempFolder.getRoot(), anEmptyDir);
         // then
         assertBodyContains("<h2>Index of /anEmptyDir</h2>", page);
+    }
+
+    @Test
+    public void renderPage_requestedIsRoot_addsCurrentDirectoryHeading() throws IOException {
+        // given
+        // when
+        String page = directoryExplorer.renderPage(tempFolder.getRoot(), tempFolder.getRoot());
+        // then
+        assertBodyContains("<h2>Index of /</h2>", page);
     }
 
     @Test

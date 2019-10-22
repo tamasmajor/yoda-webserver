@@ -3,6 +3,7 @@ package com.major.yodaserver.requestprocessor.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Properties;
 
 public class SimpleDirectoryExplorer implements DirectoryExplorer {
@@ -69,7 +70,7 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         Arrays.stream(requestedDir.listFiles())
               .filter(File::isDirectory)
               .map(File::getName)
-              .sorted()
+              .sorted(Comparator.comparing(String::toLowerCase))
               .forEach(dirName ->
                   page.append("<tr><td>d</td><td>")
                       .append("<a href=\"").append(parent).append("/").append(dirName).append("\">").append(dirName)
@@ -81,7 +82,7 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         Arrays.stream(requestedDir.listFiles())
               .filter(File::isFile)
               .map(File::getName)
-              .sorted()
+              .sorted(Comparator.comparing(String::toLowerCase))
               .forEach(dirName ->
                   page.append("<tr><td></td><td>")
                       .append("<a href=\"").append(parent).append("/").append(dirName).append("\">").append(dirName)
@@ -97,7 +98,10 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
     }
 
     private void addPageOpening(StringBuffer page) {
-        page.append("<html><head></head><body>");
+        page.append("<html><head>")
+            .append("<meta charset=\"utf-8\">")
+            .append("<meta name=\"viewport\" content=\"width=device-width\">")
+            .append("</head><body>");
     }
 
     private void addPageClosing(StringBuffer page) {

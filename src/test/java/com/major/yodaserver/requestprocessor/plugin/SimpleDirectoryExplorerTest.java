@@ -109,6 +109,21 @@ public class SimpleDirectoryExplorerTest {
     }
 
     @Test
+    public void renderPage_containsDirectories_ordersCaseInsensitive() throws IOException {
+        // given
+        File topLevel = tempFolder.newFolder("topLevel");
+        tempFolder.newFolder("topLevel", "waff");
+        tempFolder.newFolder("topLevel", "yoda");
+        tempFolder.newFolder("topLevel", "Wuff");
+        // when
+        String page = directoryExplorer.renderPage(tempFolder.getRoot(), topLevel);
+        // then
+        assertBodyContains("<tr><td>d</td><td><a href=\"/topLevel/waff\">waff</a></td></tr>" +
+                           "<tr><td>d</td><td><a href=\"/topLevel/Wuff\">Wuff</a></td></tr>" +
+                           "<tr><td>d</td><td><a href=\"/topLevel/yoda\">yoda</a></td></tr>", page);
+    }
+
+    @Test
     public void renderPage_containsFiles_addFilesInAlphanumericOrderAfterDirectories() throws IOException {
         // given
         File topLevel = tempFolder.newFolder("topLevel");
@@ -130,7 +145,8 @@ public class SimpleDirectoryExplorerTest {
 
     private void assertBodyContains(String expectedBody, String actualPage) {
         String actualBody = extractBodyFromPage(actualPage);
-        assertTrue(actualBody.contains(expectedBody));
+        assertTrue("\nExpected:\n" + expectedBody + "\n is contained by:\n" + actualBody,
+                    actualBody.contains(expectedBody));
     }
 
     private String extractBodyFromPage(String actualPage) {

@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.slf4j.Logger;
@@ -38,7 +40,7 @@ public class YodaRequestProcessor extends RequestProcessor {
             String requestMethod = socketReader.getRequestMethod();
 
             if (requestMethod.equals("GET")) {
-                String uri = socketReader.getRequestUri();
+                String uri = URLDecoder.decode(socketReader.getRequestUri(), StandardCharsets.UTF_8.toString());
                 String contentType = URLConnection.getFileNameMap().getContentTypeFor(uri);
                 File requestedResource = new File(rootDir, uri.substring(1, uri.length()));
 

@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
+
+import org.apache.commons.text.StringEscapeUtils;
 
 public class SimpleDirectoryExplorer implements DirectoryExplorer {
     private String serverVersion;
@@ -12,14 +16,15 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
     @Override
     public String renderPage(File rootDir, File requestedDir) throws IOException {
         StringBuffer page = new StringBuffer();
-        String currentDirectoryPathFromRoot = getCurrentDirectoryPathFromRoot(rootDir, requestedDir);
-        addPageOpening(currentDirectoryPathFromRoot, page);
+        String requestedPath = getRequestedPath(requestedDir, rootDir);
+        String parent = getParentPathForRequested(requestedDir, rootDir);
+        addPageOpening(requestedPath, page);
         if (existingDirectory(requestedDir)) {
-            addCurrentDirectoryHeading(currentDirectoryPathFromRoot, page);
+            addCurrentDirectoryHeading(requestedPath, page);
             page.append("<table>");
             addParentDirectoryItem(rootDir, requestedDir, page);
-            addDirectories(rootDir, requestedDir, page);
-            addFiles(rootDir, requestedDir, page);
+            addDirectories(requestedDir, parent, page);
+            addFiles(requestedDir, parent, page);
             page.append("</table>");
         } else {
             addErrorBody(requestedDir, page);
@@ -65,29 +70,30 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         return path;
     }
 
-    private void addDirectories(File rootDir, File requestedDir, StringBuffer page) throws IOException {
-        String parent = requestedDir.getCanonicalPath().replace(rootDir.getCanonicalPath(), "");
-        Arrays.stream(requestedDir.listFiles())
-              .filter(File::isDirectory)
-              .map(File::getName)
-              .sorted(Comparator.comparing(String::toLowerCase))
-              .forEach(dirName ->
-                  page.append("<tr><td>d</td><td>")
-                      .append("<a href=\"").append(parent).append("/").append(dirName).append("\">").append(dirName)
-                      .append("</a></td></tr>"));
+    private void addDirectories(File requestedDir, String parent, StringBuffer page) {
+        List<File> dirs = Arrays.stream(requestedDir.listFiles()).filter(File::isDirectory).collect(Collectors.toList());
+        addResourceListing(dirs, parent, page);
     }
 
-    private void addFiles(File rootDir, File requestedDir, StringBuffer page) throws IOException {
-        String parent = requestedDir.getCanonicalPath().replace(rootDir.getCanonicalPath(), "");
-        Arrays.stream(requestedDir.listFiles())
-              .filter(File::isFile)
-              .map(File::getName)
-              .sorted(Comparator.comparing(String::toLowerCase))
-              .forEach(dirName ->
-                  page.append("<tr><td></td><td>")
-                      .append("<a href=\"").append(parent).append("/").append(dirName).append("\">").append(dirName)
-                      .append("</a></td></tr>"));
+    private void addFiles(File requestedDir, String parent, StringBuffer page) {
+        List<File> files = Arrays.stream(requestedDir.listFiles()).filter(File::isFile).collect(Collectors.toList());
+        addResourceListing(files, parent, page);
     }
+
+    private void addResourceListing(List<File> resources, String parent, StringBuffer page) {
+        resources.stream()
+                 .sorted(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER))
+                 .forEach(resource -> addResourceListingElement(parent, resource, page));
+    }
+
+    private void addResourceListingElement(String parent, File resource, StringBuffer page) {
+        String resourceName = StringEscapeUtils.escapeHtml4(resource.getName());
+        String directoryMarker = resource.isDirectory() ? "d" : "";
+        page.append("<tr><td>").append(directoryMarker).append("</td><td>")
+            .append("<a href=\"").append(parent).append("/").append(resourceName).append("\">").append(resourceName)
+            .append("</a></td></tr>");
+    }
+
 
     private void addErrorBody(File requestedDir, StringBuffer page) {
         if (!requestedDir.exists()) {
@@ -97,13 +103,13 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         }
     }
 
-    private void addPageOpening(String currentDirectoryPathFromRoot, StringBuffer page) {
+    private void addPageOpening(String requestedPath, StringBuffer page) {
         page.append("<html><head>")
             .append("<meta charset=\"utf-8\">")
             .append("<meta name=\"viewport\" content=\"width=device-width\">")
             .append("<style>td { padding: 2px 12px 2px 12px; }</style>")
             .append("<title>Index of ")
-            .append(currentDirectoryPathFromRoot)
+            .append(requestedPath)
             .append("</title></head><body>");
     }
 
@@ -124,12 +130,16 @@ public class SimpleDirectoryExplorer implements DirectoryExplorer {
         return serverVersion;
     }
 
-    private String getCurrentDirectoryPathFromRoot(File rootDirectory, File requestedDirectory) throws IOException {
-        String path = requestedDirectory.getCanonicalPath().replace(rootDirectory.getCanonicalPath(), "");
+    private String getRequestedPath(File requestedDir, File rootDir) throws IOException {
+        String path = requestedDir.getCanonicalPath().replace(rootDir.getCanonicalPath(), "");
         if (path.length() == 0) {
             path = "/";
         }
         return path;
+    }
+
+    private String getParentPathForRequested(File requestedDir, File rootDir) throws IOException {
+        return StringEscapeUtils.escapeHtml4(requestedDir.getCanonicalPath().replace(rootDir.getCanonicalPath(), ""));
     }
 
 }

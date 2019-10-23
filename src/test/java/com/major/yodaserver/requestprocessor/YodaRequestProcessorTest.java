@@ -44,7 +44,7 @@ public class YodaRequestProcessorTest {
     }
 
     @Test
-    public void requestedResourceExistButAboveRootInHierarcy_notFoundReturned() throws IOException {
+    public void requestedResourceExistButAboveRootInHierarchy_notFoundReturned() throws IOException {
         // given
         tempFolder.newFolder("above-root-2", "root");
         File root = new File(tempFolder.getRoot() + "/above-root-2/root");
@@ -87,6 +87,25 @@ public class YodaRequestProcessorTest {
         assertEquals("Content-Type: image/png", itHeaderLines.next());
         assertEquals("", itHeaderLines.next());
         assertArrayEquals(expectedFileContent, verifierSocket.bodyAsBytes());
+    }
+
+    @Test
+    public void resourceRequestedWithSpecialCharsURLEncoded_usesDecodedRequestUrl() throws IOException {
+        // given
+        tempFolder.newFile("File with space and spéciál.pdf");
+        VerifierSocket verifierSocket = new VerifierSocket();
+        verifierSocket.addRequestLine("GET /File%20with%20space%20and%20sp%C3%A9ci%C3%A1l.pdf HTTP/1.1");
+        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(tempFolder.getRoot(), verifierSocket, null);
+        // when
+        requestProcessor.run();
+        // then
+        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
+        assertEquals(5, responseHeaderLines.size());
+        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
+        assertEquals("HTTP/1.1 200 OK", itHeaderLines.next());
+        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
+        assertEquals("Content-Length: 0", itHeaderLines.next());
+        assertEquals("Content-Type: application/pdf", itHeaderLines.next());
     }
 
     @Test

@@ -2,6 +2,8 @@ package com.major.yodaserver;
 
 import org.junit.Test;
 
+import com.major.yodaserver.common.MimeType;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 

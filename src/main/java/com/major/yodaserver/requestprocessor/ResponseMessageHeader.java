@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.major.yodaserver.common.Header;
+
 public class ResponseMessageHeader {
     protected static final String LINE_TERMINATOR = "\r\n";
 
@@ -24,7 +26,7 @@ public class ResponseMessageHeader {
 
         public Builder(StatusCode statusCode) {
             this.statusCode = statusCode;
-            headers.put("Server", "YodaServer 0.0.1");
+            headers.put(Header.SERVER.getKey(), "YodaServer 0.0.1");
         }
 
         public Builder addHeader(String headerName, String headerValue) {
@@ -32,9 +34,17 @@ public class ResponseMessageHeader {
             return this;
         }
 
+        public Builder addHeader(Header header, String headerValue) {
+            return addHeader(header.getKey(), headerValue);
+        }
+
         public Builder addHeader(String headerName, int headerValue) {
             headers.put(headerName, String.valueOf(headerValue));
             return this;
+        }
+
+        public Builder addHeader(Header header, int headerValue) {
+            return addHeader(header.getKey(), headerValue);
         }
 
         public ResponseMessageHeader build() {
@@ -48,7 +58,7 @@ public class ResponseMessageHeader {
                               .append(statusCode.getStatusCode()).append(" ")
                               .append(statusCode.getReasonPhrase()).append(LINE_TERMINATOR);
 
-        headers.putIfAbsent("Date", String.valueOf(new Date()));
+        headers.putIfAbsent(Header.DATE.getKey(), String.valueOf(new Date()));
         headers.entrySet().stream()
                           .map(entry -> entry.getKey() + ": " + entry.getValue() + LINE_TERMINATOR)
                           .forEach(responseMessageHeaders::append);

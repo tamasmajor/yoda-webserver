@@ -1,11 +1,12 @@
-package com.major.yodaserver;
+package com.major.yodaserver.common;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public enum MimeType {
-    CSS("css", "text/css");
+    CSS("css", "text/css"),
+    HTML("html", "text/html");
 
     private static final Map<String, String> typesByExtension;
     private final String extension;

@@ -48,7 +48,7 @@ public class YodaServer {
             while (!interrupter.activated()) {
                 try {
                     Socket connection = server.accept();
-                    pool.submit(requestProcessorFactory.createRequestProcessor(rootDir, connection));
+                    pool.submit(() -> requestProcessorFactory.createRequestProcessor(rootDir, connection).process());
                 } catch (RuntimeException e) {
                     // just log the exception, do not stop the server because of a failing request
                     logger.error("Could not process a request", e);

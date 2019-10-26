@@ -156,10 +156,7 @@ public class YodaServerTest {
     }
 
     private RequestProcessor aDoNothingProcessor() {
-        return new RequestProcessor(null, new Socket()) {
-            @Override
-            public void run() {}
-        };
+        return () -> {};
     }
 
 }

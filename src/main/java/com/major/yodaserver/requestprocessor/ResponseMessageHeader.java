@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.major.yodaserver.common.Header;
+import com.major.yodaserver.common.StatusCode;
 
 public class ResponseMessageHeader {
     protected static final String LINE_TERMINATOR = "\r\n";

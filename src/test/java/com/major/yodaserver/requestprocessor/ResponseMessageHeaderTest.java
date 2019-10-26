@@ -2,6 +2,8 @@ package com.major.yodaserver.requestprocessor;
 
 import org.junit.Test;
 
+import com.major.yodaserver.common.StatusCode;
+
 import static com.major.yodaserver.requestprocessor.ResponseMessageHeader.LINE_TERMINATOR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

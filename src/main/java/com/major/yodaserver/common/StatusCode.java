@@ -1,4 +1,4 @@
-package com.major.yodaserver.requestprocessor;
+package com.major.yodaserver.common;
 
 public enum StatusCode {
     OK(200, "OK"),

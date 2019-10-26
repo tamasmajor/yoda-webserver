@@ -1,31 +1,49 @@
 package com.major.yodaserver.requestprocessor;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.Socket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.major.yodaserver.common.Header;
+import com.major.yodaserver.common.StatusCode;
 
-public class AcknowledgementRequestProcessor extends RequestProcessor {
+
+public class AcknowledgementRequestProcessor implements RequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AcknowledgementRequestProcessor.class);
 
-    public AcknowledgementRequestProcessor(File rootDir, Socket connection) {
-        super(rootDir, connection);
+    private Socket connection;
+    private BufferedOutputStream raw;
+    private Writer headerWriter;
+
+    private AcknowledgementRequestProcessor(Socket connection, OutputStream out) {
+        this.connection = connection;
+        raw = new BufferedOutputStream(out);
+        headerWriter = new OutputStreamWriter(raw);
     }
 
-    @Override
-    public void run() {
+    public static AcknowledgementRequestProcessor newInstance(Socket connection) {
+        try {
+            return new AcknowledgementRequestProcessor(connection, connection.getOutputStream());
+        } catch (IOException ioe) {
+            throw new RuntimeException("Could not create the request processor", ioe);
+        }
+    }
+
+    public void process() {
         try {
             logger.info(connection.getRemoteSocketAddress().toString());
-            BufferedOutputStream response = new BufferedOutputStream(connection.getOutputStream());
-            response.write(asResponseLine("HTTP/1.1 200 OK"));
-            response.write(asResponseLine("Server: YodaServer 0.0.1"));
-            response.write(asResponseLine("Content-Length: 0"));
-            response.write(asResponseLine(""));
-            response.flush();
+            ResponseMessageHeader response = new ResponseMessageHeader.Builder(StatusCode.OK)
+                                                                      .addHeader(Header.CONTENT_LENGTH, 0)
+                                                                      .build();
+            headerWriter.write(response.asHttpResponse());
+            headerWriter.flush();
+            raw.flush();
         } catch (IOException e) {
             // client disconnected, nothing to do
         } finally {

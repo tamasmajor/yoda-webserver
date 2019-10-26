@@ -6,7 +6,15 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.major.yodaserver.common.Header;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class VerifierSocket extends Socket {
     private final byte[] BODY_SEPARATOR_SEQUENCE = new byte[] { '\r', '\n', '\r', '\n' };
@@ -44,7 +52,35 @@ public class VerifierSocket extends Socket {
         request.append("\r\n");
     }
 
-    public List<String> getHeaderLines() {
+    public void assertResponseMessageHeaderHasLines(int numberOfExpectedLines) {
+        assertEquals(numberOfExpectedLines, getHeaderLines().size());
+    }
+
+    public void assertStatusLineEquals(String expected) {
+        assertEquals(expected, getHeaderLines().get(0));
+    }
+
+    public void assertContainsHeader(Header header, String expected) {
+        assertEquals(expected, extractHeaders().get(header.getKey()));
+    }
+
+    public void assertContainsHeader(Header header, int expected) {
+        int actual = Integer.valueOf(extractHeaders().get(header.getKey()));
+        assertEquals(expected, actual);
+    }
+
+    public void assertContainsHeader(Header header) {
+        assertTrue(extractHeaders().containsKey(header.getKey()));
+    }
+
+    public void assertHasEmptyTrailingLine() {
+        List<String> headerLines = getHeaderLines();
+        assertEquals("", headerLines.get(headerLines.size() - 1));
+    }
+
+
+    // TODO: refactor these
+    private List<String> getHeaderLines() {
         List<String> lines = new ArrayList<>();
 
         byte[] bytes = response.toByteArray();
@@ -61,6 +97,19 @@ public class VerifierSocket extends Socket {
         }
 
         return lines;
+    }
+
+    private Map<String, String> extractHeaders() {
+        List<String> headerLines = getHeaderLines().stream().filter(l -> l.length() > 0)
+                                                            .filter(l -> !l.startsWith("HTTP/"))
+                                                            .filter(l -> l.contains(": "))
+                                                            .collect(Collectors.toList());
+        Map<String, String> headers = new HashMap<>();
+        headerLines.forEach(hl -> {
+            String[] parts = hl.split(": ");
+            headers.put(parts[0], parts[1]);
+        });
+        return headers;
     }
 
     public String bodyAsString() {

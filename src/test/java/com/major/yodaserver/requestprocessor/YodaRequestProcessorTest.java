@@ -4,17 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.major.yodaserver.common.CommonHtmlPage;
+import com.major.yodaserver.common.Header;
+import com.major.yodaserver.common.MimeType;
 import com.major.yodaserver.helper.VerifierSocket;
 
-import static com.major.yodaserver.requestprocessor.YodaRequestProcessor.NOT_FOUND_MESSAGE_BODY;
-import static com.major.yodaserver.requestprocessor.YodaRequestProcessor.NOT_SUPPORTED_MESSAGE_BODY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -28,19 +27,18 @@ public class YodaRequestProcessorTest {
         // given
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("GET /does-not-exists HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(tempFolder.getRoot(), verifierSocket, null);
+        YodaRequestProcessor requestProcessor = YodaRequestProcessor.newInstance(tempFolder.getRoot(), verifierSocket, null);
         // when
-        requestProcessor.run();
+        requestProcessor.process();
         // then
-        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
-        assertEquals(5, responseHeaderLines.size());
-        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
-        assertEquals("HTTP/1.1 404 File Not Found", itHeaderLines.next());
-        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
-        assertEquals("Content-Length: " + NOT_FOUND_MESSAGE_BODY.getBytes().length, itHeaderLines.next());
-        assertEquals("Content-type: text/html", itHeaderLines.next());
-        assertEquals("", itHeaderLines.next());
-        assertEquals(NOT_FOUND_MESSAGE_BODY, verifierSocket.bodyAsString());
+        verifierSocket.assertResponseMessageHeaderHasLines(6);
+        verifierSocket.assertStatusLineEquals("HTTP/1.1 404 Not Found");
+        verifierSocket.assertContainsHeader(Header.SERVER, "YodaServer 0.0.1");
+        verifierSocket.assertContainsHeader(Header.CONTENT_LENGTH, CommonHtmlPage.NOT_FOUND.getHtml().getBytes().length);
+        verifierSocket.assertContainsHeader(Header.CONTENT_TYPE, MimeType.HTML.getMimeType());
+        verifierSocket.assertContainsHeader(Header.DATE);
+        verifierSocket.assertHasEmptyTrailingLine();
+        assertEquals(CommonHtmlPage.NOT_FOUND.getHtml(), verifierSocket.bodyAsString());
     }
 
     @Test
@@ -50,19 +48,18 @@ public class YodaRequestProcessorTest {
         File root = new File(tempFolder.getRoot() + "/above-root-2/root");
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("GET /../ HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(root, verifierSocket, null);
+        YodaRequestProcessor requestProcessor = YodaRequestProcessor.newInstance(root, verifierSocket, null);
         // when
-        requestProcessor.run();
+        requestProcessor.process();
         // then
-        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
-        assertEquals(5, responseHeaderLines.size());
-        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
-        assertEquals("HTTP/1.1 404 File Not Found", itHeaderLines.next());
-        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
-        assertEquals("Content-Length: " + NOT_FOUND_MESSAGE_BODY.getBytes().length, itHeaderLines.next());
-        assertEquals("Content-type: text/html", itHeaderLines.next());
-        assertEquals("", itHeaderLines.next());
-        assertEquals(NOT_FOUND_MESSAGE_BODY, verifierSocket.bodyAsString());
+        verifierSocket.assertResponseMessageHeaderHasLines(6);
+        verifierSocket.assertStatusLineEquals("HTTP/1.1 404 Not Found");
+        verifierSocket.assertContainsHeader(Header.SERVER, "YodaServer 0.0.1");
+        verifierSocket.assertContainsHeader(Header.CONTENT_LENGTH, CommonHtmlPage.NOT_FOUND.getHtml().getBytes().length);
+        verifierSocket.assertContainsHeader(Header.CONTENT_TYPE, MimeType.HTML.getMimeType());
+        verifierSocket.assertContainsHeader(Header.DATE);
+        verifierSocket.assertHasEmptyTrailingLine();
+        assertEquals(CommonHtmlPage.NOT_FOUND.getHtml(), verifierSocket.bodyAsString());
     }
     
     @Test
@@ -74,18 +71,17 @@ public class YodaRequestProcessorTest {
         Files.write(testFile.toPath(), expectedFileContent);
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("GET /test/image01.png HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(tempFolder.getRoot(), verifierSocket, null);
+        YodaRequestProcessor requestProcessor = YodaRequestProcessor.newInstance(tempFolder.getRoot(), verifierSocket, null);
         // when
-        requestProcessor.run();
+        requestProcessor.process();
         // then
-        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
-        assertEquals(5, responseHeaderLines.size());
-        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
-        assertEquals("HTTP/1.1 200 OK", itHeaderLines.next());
-        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
-        assertEquals("Content-Length: " + expectedFileContent.length, itHeaderLines.next());
-        assertEquals("Content-Type: image/png", itHeaderLines.next());
-        assertEquals("", itHeaderLines.next());
+        verifierSocket.assertResponseMessageHeaderHasLines(6);
+        verifierSocket.assertStatusLineEquals("HTTP/1.1 200 OK");
+        verifierSocket.assertContainsHeader(Header.SERVER, "YodaServer 0.0.1");
+        verifierSocket.assertContainsHeader(Header.CONTENT_LENGTH, expectedFileContent.length);
+        verifierSocket.assertContainsHeader(Header.CONTENT_TYPE, "image/png");
+        verifierSocket.assertContainsHeader(Header.DATE);
+        verifierSocket.assertHasEmptyTrailingLine();
         assertArrayEquals(expectedFileContent, verifierSocket.bodyAsBytes());
     }
 
@@ -95,17 +91,17 @@ public class YodaRequestProcessorTest {
         tempFolder.newFile("File with space and spéciál.pdf");
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("GET /File%20with%20space%20and%20sp%C3%A9ci%C3%A1l.pdf HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(tempFolder.getRoot(), verifierSocket, null);
+        YodaRequestProcessor requestProcessor = YodaRequestProcessor.newInstance(tempFolder.getRoot(), verifierSocket, null);
         // when
-        requestProcessor.run();
+        requestProcessor.process();
         // then
-        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
-        assertEquals(5, responseHeaderLines.size());
-        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
-        assertEquals("HTTP/1.1 200 OK", itHeaderLines.next());
-        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
-        assertEquals("Content-Length: 0", itHeaderLines.next());
-        assertEquals("Content-Type: application/pdf", itHeaderLines.next());
+        verifierSocket.assertResponseMessageHeaderHasLines(6);
+        verifierSocket.assertStatusLineEquals("HTTP/1.1 200 OK");
+        verifierSocket.assertContainsHeader(Header.SERVER, "YodaServer 0.0.1");
+        verifierSocket.assertContainsHeader(Header.CONTENT_LENGTH, 0);
+        verifierSocket.assertContainsHeader(Header.CONTENT_TYPE, "application/pdf");
+        verifierSocket.assertContainsHeader(Header.DATE);
+        verifierSocket.assertHasEmptyTrailingLine();
     }
 
     @Test
@@ -113,19 +109,18 @@ public class YodaRequestProcessorTest {
         // given
         VerifierSocket verifierSocket = new VerifierSocket();
         verifierSocket.addRequestLine("PUT /a/file.html HTTP/1.1");
-        YodaRequestProcessor requestProcessor = new YodaRequestProcessor(null, verifierSocket, null);
+        YodaRequestProcessor requestProcessor = YodaRequestProcessor.newInstance(null, verifierSocket, null);
         // when
-        requestProcessor.run();
+        requestProcessor.process();
         // then
-        List<String> responseHeaderLines = verifierSocket.getHeaderLines();
-        assertEquals(5, responseHeaderLines.size());
-        Iterator<String> itHeaderLines = responseHeaderLines.iterator();
-        assertEquals("HTTP/1.1 501 Not Implemented", itHeaderLines.next());
-        assertEquals("Server: YodaServer 0.0.1", itHeaderLines.next());
-        assertEquals("Content-Length: " + NOT_SUPPORTED_MESSAGE_BODY.getBytes().length, itHeaderLines.next());
-        assertEquals("Content-type: text/html", itHeaderLines.next());
-        assertEquals("", itHeaderLines.next());
-        assertEquals(NOT_SUPPORTED_MESSAGE_BODY, verifierSocket.bodyAsString());
+        verifierSocket.assertResponseMessageHeaderHasLines(6);
+        verifierSocket.assertStatusLineEquals("HTTP/1.1 501 Not Implemented");
+        verifierSocket.assertContainsHeader(Header.SERVER, "YodaServer 0.0.1");
+        verifierSocket.assertContainsHeader(Header.CONTENT_LENGTH, CommonHtmlPage.NOT_IMPLEMENTED.getHtml().getBytes().length);
+        verifierSocket.assertContainsHeader(Header.CONTENT_TYPE, MimeType.HTML.getMimeType());
+        verifierSocket.assertContainsHeader(Header.DATE);
+        verifierSocket.assertHasEmptyTrailingLine();
+        assertEquals(CommonHtmlPage.NOT_IMPLEMENTED.getHtml(), verifierSocket.bodyAsString());
     }
 
 }

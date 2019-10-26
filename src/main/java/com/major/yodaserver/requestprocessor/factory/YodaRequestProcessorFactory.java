@@ -21,7 +21,7 @@ public class YodaRequestProcessorFactory implements RequestProcessorFactory {
     }
 
     @Override
-    public RequestProcessor createRequestProcessor(File rootDir, Socket connection) {
-        return new YodaRequestProcessor(rootDir, connection, directoryExplorer);
+    public RequestProcessor createRequestProcessor(File rootDirectory, Socket connection) {
+        return YodaRequestProcessor.newInstance(rootDirectory, connection, directoryExplorer);
     }
 }

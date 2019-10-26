@@ -9,6 +9,6 @@ import com.major.yodaserver.requestprocessor.RequestProcessor;
 public class AcknowledgementRequestProcessorFactory implements RequestProcessorFactory {
     @Override
     public RequestProcessor createRequestProcessor(File rootDir, Socket connection) {
-        return new AcknowledgementRequestProcessor(rootDir, connection);
+        return AcknowledgementRequestProcessor.newInstance(connection);
     }
 }
